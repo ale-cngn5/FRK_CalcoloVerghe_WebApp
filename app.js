@@ -1,140 +1,15 @@
 // Calcolo Tubolari Web App - JavaScript
 
-// Constants
-const STANDARD_ROD = 6000; // 6 meters in mm
-const EXTENDED_ROD = 12000; // 12 meters in mm
-const SAW_BLADE_LOSS = 2; // mm loss per cut
+// Core pieces have been moved to separate files:
+// - constants.js (STANDARD_ROD, EXTENDED_ROD, SAW_BLADE_LOSS)
+// - models.js (Tubolar class)
+// - calculator.js (TubolarCalculator class)
+// - parser.js (parseSheetRows)
+// - ui_helpers.js (showToast, removeTubolarDirect)
 
-// Global state
+// Global state (kept here to avoid changing many references)
 let tubolarList = {};
 let lastCalculationResult = null;
-
-// Tubolar Class
-class Tubolar {
-    constructor(type, length, quantity, description = '', material = '') {
-        this.type = type;
-        this.length = parseInt(length);
-        this.quantity = parseInt(quantity);
-        this.description = description;
-        this.material = material;
-    }
-
-    getTotalLength() {
-        return this.length * this.quantity;
-    }
-}
-
-// Calculator Class
-class TubolarCalculator {
-    constructor(tubolarMap, useOptimal = true) {
-        this.tubolarMap = tubolarMap;
-        this.useOptimal = useOptimal;
-    }
-
-    calculate() {
-        const results = {};
-        
-        for (const [type, tubolarArray] of Object.entries(this.tubolarMap)) {
-            if (this.useOptimal) {
-                results[type] = this.calculateOptimal(tubolarArray);
-            } else {
-                results[type] = this.calculateWithRodLength(tubolarArray, STANDARD_ROD);
-            }
-        }
-        
-        return results;
-    }
-
-    calculateOptimal(tubolarArray) {
-        const resultStandard = this.calculateWithRodLength(tubolarArray, STANDARD_ROD);
-        const resultExtended = this.calculateWithRodLength(tubolarArray, EXTENDED_ROD);
-        
-        // Return the solution that uses fewer rods
-        const standardTotal = resultStandard.length;
-        const extendedTotal = resultExtended.length;
-        const extendedEquivalent = extendedTotal * 2; // Each 12m rod equals two 6m rods
-        
-        return standardTotal <= extendedEquivalent ? resultStandard : resultExtended;
-    }
-
-    calculateWithRodLength(tubolarArray, rodLength) {
-        const results = [];
-        const workingList = [];
-        
-        // Create working list with all pieces
-        tubolarArray.forEach(tubolar => {
-            for (let i = 0; i < tubolar.quantity; i++) {
-                workingList.push({
-                    length: tubolar.length,
-                    type: tubolar.type
-                });
-            }
-        });
-        
-        // Sort by length descending (largest first)
-        workingList.sort((a, b) => b.length - a.length);
-        
-        // Bin packing algorithm
-        while (workingList.length > 0) {
-            let remainingLength = rodLength;
-            const cuts = [];
-            let i = 0;
-            
-            while (i < workingList.length) {
-                const piece = workingList[i];
-                
-                if (piece.length <= remainingLength) {
-                    cuts.push({
-                        length: piece.length,
-                        type: piece.type
-                    });
-                    remainingLength -= (piece.length + SAW_BLADE_LOSS);
-                    workingList.splice(i, 1);
-                } else {
-                    i++;
-                }
-            }
-            
-            if (cuts.length > 0) {
-                results.push({
-                    rodLength: rodLength,
-                    cuts: cuts,
-                    waste: Math.max(0, remainingLength)
-                });
-            }
-        }
-        
-        return results;
-    }
-
-    getTotalStatistics(results) {
-        let total6m = 0;
-        let total12m = 0;
-        let totalWaste = 0;
-        let totalCuts = 0;
-
-        for (const [type, rods] of Object.entries(results)) {
-            rods.forEach(rod => {
-                if (rod.rodLength === STANDARD_ROD) {
-                    total6m++;
-                } else {
-                    total12m++;
-                }
-                totalWaste += rod.waste;
-                totalCuts += rod.cuts.length;
-            });
-        }
-
-        return {
-            total6m,
-            total12m,
-            totalRods: total6m + total12m,
-            totalWaste,
-            totalCuts,
-            averageWaste: totalCuts > 0 ? (totalWaste / (total6m + total12m)).toFixed(2) : 0
-        };
-    }
-}
 
 // DOM Ready
 document.addEventListener('DOMContentLoaded', function() {
@@ -525,63 +400,7 @@ function generateRomboFormat(siloCode, siloNumber) {
     return html;
 }
 
-function parseSheetRows(sheet) {
-    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-
-    // Find header row by searching for known keywords
-    let headerIndex = -1;
-    for (let i = 0; i < rows.length; i++) {
-        const r = rows[i];
-        if (!r) continue;
-        const found = r.some(cell => {
-            if (!cell) return false;
-            const s = String(cell).toLowerCase();
-            return s.includes('codice') || s.includes('cod.') || s.includes('cod') || s.includes('q.t') || s.includes('q.ta') || s.includes('quant');
-        });
-        if (found) { headerIndex = i; break; }
-    }
-    if (headerIndex === -1) headerIndex = 0;
-
-    const header = rows[headerIndex].map(h => ('' + h).toLowerCase().trim());
-    const map = {};
-    header.forEach((h, idx) => {
-        if (!h) return;
-        if (h.includes('codic') || h.includes('cod.')) map.code = idx;
-        else if (h.includes('lung')) map.length = idx;
-        else if (h.includes('qt') || h.includes('q.t') || h.includes('quant')) map.quantity = idx;
-        else if (h.includes('descr')) map.description = idx;
-        else if (h.includes('mat')) map.material = idx;
-    });
-
-    const items = [];
-    for (let i = headerIndex + 1; i < rows.length; i++) {
-        const r = rows[i];
-        if (!r || r.every(c => c === '')) continue;
-
-        const rawCode = map.code !== undefined ? r[map.code] : (r[2] || r[0]);
-        const rawLength = map.length !== undefined ? r[map.length] : (r[3] || r[4]);
-        const rawQty = map.quantity !== undefined ? r[map.quantity] : (r[1] || r[0]);
-
-        const code = rawCode ? String(rawCode).trim() : '';
-        const lengthStr = rawLength ? String(rawLength).replace(/[^0-9]/g, '') : '';
-        const qtyStr = rawQty ? String(rawQty).replace(/[^0-9]/g, '') : '';
-
-        const length = parseInt(lengthStr, 10) || 0;
-        const quantity = parseInt(qtyStr, 10) || 0;
-
-        if (length > 0 && quantity > 0) {
-            items.push({
-                type: code || 'TBQ',
-                length: length,
-                quantity: quantity,
-                description: map.description !== undefined ? r[map.description] : '',
-                material: map.material !== undefined ? r[map.material] : ''
-            });
-        }
-    }
-
-    return items;
-}
+// Excel parsing moved to parser.js (parseSheetRows)
 
 function handleExcelImport(event) {
     const file = event.target.files[0];
@@ -710,43 +529,4 @@ function resetApp() {
     showToast('Successo', 'Applicazione resettata', 'info');
 }
 
-function showToast(title, message, type = 'info') {
-    // Create toast container if it doesn't exist
-    let toastContainer = document.querySelector('.toast-container');
-    if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.className = 'toast-container';
-        document.body.appendChild(toastContainer);
-    }
-
-    // Create toast
-    const toastId = 'toast_' + Date.now();
-    const bgColor = type === 'success' ? 'bg-success' : 
-                    type === 'danger' ? 'bg-danger' : 
-                    type === 'warning' ? 'bg-warning' : 'bg-info';
-
-    const toastHTML = `
-        <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header ${bgColor} text-white">
-                <strong class="me-auto">${title}</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-                ${message}
-            </div>
-        </div>
-    `;
-
-    toastContainer.insertAdjacentHTML('beforeend', toastHTML);
-    const toastElement = document.getElementById(toastId);
-    const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
-    toast.show();
-
-    // Remove toast after it's hidden
-    toastElement.addEventListener('hidden.bs.toast', () => {
-        toastElement.remove();
-    });
-}
-
-// Make removeTubolarDirect available globally
-window.removeTubolarDirect = removeTubolarDirect;
+// UI helpers moved to ui_helpers.js (showToast, removeTubolarDirect)
