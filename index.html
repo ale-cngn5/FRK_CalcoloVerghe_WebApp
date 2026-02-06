@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolo Tubolari - Ottimizzazione Tagli</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Header -->
+        <header class="bg-primary text-white py-3 mb-4">
+            <div class="container">
+                <h1 class="mb-0">
+                    <i class="bi bi-wrench-adjustable"></i>
+                    Calcolo Tubolari STX/STL
+                </h1>
+                <p class="mb-0 small">Ottimizzazione tagli verghe per Silsystem</p>
+            </div>
+        </header>
+
+        <div class="container">
+            <!-- Info Alert -->
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle"></i>
+                <strong>Informazioni:</strong> Questa applicazione calcola il numero di verghe necessarie ottimizzando i tagli.
+                Le verghe disponibili sono da 6m e 12m. Nel calcolo sono considerate le perdite di taglio (~2mm).
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="row">
+                <!-- Left Panel - Input Form -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-pencil-square"></i>
+                                Inserimento Dati
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Silo Information -->
+                            <div class="mb-3">
+                                <label for="siloCode" class="form-label">Codice Silo</label>
+                                <input type="text" class="form-control" id="siloCode" 
+                                       placeholder="es: STX4848CM0001">
+                                <div class="form-text">Codice identificativo del silo</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="siloNumber" class="form-label">Numero Silo</label>
+                                <input type="number" class="form-control" id="siloNumber" 
+                                       value="1" min="1">
+                            </div>
+
+                            <hr>
+
+                            <!-- Manual Input Section -->
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="manualInputSwitch">
+                                <label class="form-check-label" for="manualInputSwitch">
+                                    <strong>Inserimento Manuale</strong>
+                                </label>
+                            </div>
+
+                            <div id="manualInputSection" style="display: none;">
+                                <div class="mb-3">
+                                    <label for="tubolarType" class="form-label">Tipo Tubolare</label>
+                                    <select class="form-select" id="tubolarType">
+                                        <option value="TBQ15003">TBQ15003 - Tubolare 150x150 sp3</option>
+                                        <option value="TBQ15004">TBQ15004 - Tubolare 150x150 sp4</option>
+                                        <option value="TBQ14003">TBQ14003 - Tubolare 140x140 sp3</option>
+                                        <option value="TBQ14002">TBQ14002 - Tubolare 140x140 sp2</option>
+                                        <option value="TBQ12003">TBQ12003 - Tubolare 120x120 sp3</option>
+                                        <option value="TBQ12004">TBQ12004 - Tubolare 120x120 sp4</option>
+                                        <option value="TBQ11003">TBQ11003 - Tubolare 110x110 sp3</option>
+                                        <option value="TBQ10003">TBQ10003 - Tubolare 100x100 sp3</option>
+                                        <option value="TBQ09003">TBQ09003 - Tubolare 90x90 sp3</option>
+                                        <option value="TBQ08004">TBQ08004 - Tubolare 80x80 sp4</option>
+                                        <option value="TBQ07004">TBQ07004 - Tubolare 70x70 sp4</option>
+                                        <option value="TBQ07003">TBQ07003 - Tubolare 70x70 sp3</option>
+                                        <option value="TBQ06003">TBQ06003 - Tubolare 60x60 sp3</option>
+                                        <option value="TBQ05002">TBQ05002 - Tubolare 50x50 sp2</option>
+                                        <option value="TBQ05004">TBQ05004 - Tubolare 50x50 sp4</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="tubolarLength" class="form-label">Lunghezza (mm)</label>
+                                    <input type="number" class="form-control" id="tubolarLength" 
+                                           placeholder="es: 1500" min="1">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="tubolarQuantity" class="form-label">Quantità</label>
+                                    <input type="number" class="form-control" id="tubolarQuantity" 
+                                           placeholder="es: 10" min="1">
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-success" id="addTubolarBtn">
+                                        <i class="bi bi-plus-circle"></i> Aggiungi Tubolare
+                                    </button>
+                                    <button type="button" class="btn btn-danger" id="removeTubolarBtn">
+                                        <i class="bi bi-trash"></i> Rimuovi Tubolare
+                                    </button>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <!-- Excel Import Section -->
+                            <div class="mb-3">
+                                <label for="excelFile" class="form-label">
+                                    <i class="bi bi-file-excel"></i> Importa da Excel
+                                </label>
+                                <input type="file" class="form-control" id="excelFile" 
+                                       accept=".xlsx, .xls">
+                                <div class="form-text">Seleziona un file Excel con i tubolari</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Options Card -->
+                    <div class="card shadow-sm mt-3">
+                        <div class="card-header bg-warning">
+                            <h6 class="mb-0">
+                                <i class="bi bi-gear"></i>
+                                Opzioni Calcolo
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="onlySixMeters">
+                                <label class="form-check-label" for="onlySixMeters">
+                                    Solo Verghe da 6 metri
+                                </label>
+                            </div>
+                            <div class="form-text">Se disattivato, usa ottimizzazione 6m/12m</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center Panel - Tubular List -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-list-ul"></i>
+                                Lista Tubolari
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="tubolarList" class="list-group">
+                                <div class="text-center text-muted p-4">
+                                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                                    <p class="mt-2">Nessun tubolare aggiunto</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel - Actions and Results -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-calculator"></i>
+                                Azioni e Risultati
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2 mb-3">
+                                <button type="button" class="btn btn-primary" id="calculateBtn">
+                                    <i class="bi bi-calculator"></i> Calcola
+                                </button>
+                                
+                                <button type="button" class="btn btn-outline-primary" id="showPurchaseList">
+                                    <i class="bi bi-cart"></i> Lista per Acquisti
+                                </button>
+                                
+                                <button type="button" class="btn btn-outline-primary" id="showCutList">
+                                    <i class="bi bi-scissors"></i> Lista di Taglio
+                                </button>
+                                
+                                <button type="button" class="btn btn-outline-info" id="showRomboFormat">
+                                    <i class="bi bi-file-text"></i> Per Rombo
+                                </button>
+
+                                <hr>
+
+                                <button type="button" class="btn btn-outline-secondary" id="exportExcelBtn">
+                                    <i class="bi bi-file-earmark-excel"></i> Esporta Excel
+                                </button>
+                                
+                                <button type="button" class="btn btn-outline-warning" id="showInstructions">
+                                    <i class="bi bi-question-circle"></i> Istruzioni Excel
+                                </button>
+                                
+                                <button type="button" class="btn btn-outline-info" id="showRules">
+                                    <i class="bi bi-book"></i> Regole di Utilizzo
+                                </button>
+
+                                <hr>
+
+                                <button type="button" class="btn btn-danger" id="resetBtn">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Svuota Tutto
+                                </button>
+                            </div>
+
+                            <!-- Quick Stats -->
+                            <div id="quickStats" class="mt-3" style="display: none;">
+                                <h6>Riepilogo Rapido:</h6>
+                                <div class="small">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Tubolari totali:</span>
+                                        <strong id="statTotalItems">0</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Verghe necessarie:</span>
+                                        <strong id="statTotalRods">0</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Scarto stimato:</span>
+                                        <strong id="statWaste">0 mm</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-dark text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-clipboard-data"></i>
+                                Risultati Calcolo
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="resultsContainer">
+                                <div class="text-center text-muted p-5">
+                                    <i class="bi bi-bar-chart" style="font-size: 3rem;"></i>
+                                    <p class="mt-2">I risultati appariranno qui dopo il calcolo</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-light text-center py-3 mt-5">
+            <div class="container">
+                <p class="text-muted mb-0">
+                    <small>Calcolo Tubolari Web App &copy; 2026 - Ottimizzazione tagli per Silsystem STX/STL</small>
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modals -->
+    <!-- Instructions Modal -->
+    <div class="modal fade" id="instructionsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-question-circle"></i> Istruzioni per l'uso del File Excel
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>Formato del File Excel:</h6>
+                    <p>Il file Excel deve contenere le seguenti colonne:</p>
+                    <ul>
+                        <li><strong>Codice</strong>: Codice identificativo del tubolare (es: TBQ1234)</li>
+                        <li><strong>Descrizione</strong>: Descrizione del tubolare</li>
+                        <li><strong>Lunghezza</strong>: Lunghezza in millimetri</li>
+                        <li><strong>Quantità</strong>: Numero di pezzi necessari</li>
+                        <li><strong>Materiale</strong>: Tipo di materiale (opzionale)</li>
+                    </ul>
+                    <p class="text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        Assicurati che la prima riga contenga le intestazioni delle colonne.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rules Modal -->
+    <div class="modal fade" id="rulesModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-book"></i> Regole di Utilizzo
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>APPLICAZIONE CALCOLO VERGHE STX/STL</h6>
+                    <p>
+                        Questa applicazione consente di calcolare il numero di verghe necessarie per i Silsystem 
+                        (STX e STL) necessarie per un determinato progetto ottimizzando in base ai tagli 
+                        le verghe necessarie.
+                    </p>
+                    <p>
+                        Le verghe possono essere scelte tra due lunghezze: <strong>12 metri</strong> e <strong>6 metri</strong>.
+                    </p>
+                    <p>
+                        Nel conto vengono considerate anche le perdite di materiale dovute ai tagli della sega (~2mm).
+                    </p>
+                    
+                    <h6 class="mt-3">Come usare l'applicazione:</h6>
+                    <ol>
+                        <li>Inserire il codice del silo e il numero di silo</li>
+                        <li>Aggiungere i tubolari manualmente o importarli da Excel</li>
+                        <li>Scegliere l'opzione di calcolo (solo 6m o ottimizzato)</li>
+                        <li>Cliccare su "Calcola" per ottenere i risultati</li>
+                        <li>Visualizzare i risultati nelle diverse modalità disponibili</li>
+                    </ol>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal fade" id="resultModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resultModalTitle">Risultati</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="resultModalBody"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                    <button type="button" class="btn btn-primary" id="copyResultBtn">
+                        <i class="bi bi-clipboard"></i> Copia
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SheetJS for Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <!-- Custom JS -->
+    <script src="app.js"></script>
+</body>
+</html>

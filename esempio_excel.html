@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esempio Excel - Calcolo Tubolari</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #0d6efd;
+            padding-bottom: 10px;
+        }
+        .info-box {
+            background-color: #d1ecf1;
+            border-left: 4px solid #0dcaf0;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #0d6efd;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .btn-download {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #198754;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .btn-download:hover {
+            background-color: #157347;
+        }
+        .note {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Esempio Formato Excel per Import</h1>
+        
+        <div class="info-box">
+            <strong>ℹ️ Informazioni:</strong> Questa pagina mostra il formato corretto per il file Excel da importare nell'applicazione Calcolo Tubolari.
+        </div>
+
+        <h2>Formato Tabella Excel</h2>
+        <p>Il file Excel deve contenere le seguenti colonne nella prima riga (intestazioni):</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Codice</th>
+                    <th>Descrizione</th>
+                    <th>Lunghezza</th>
+                    <th>Quantità</th>
+                    <th>Materiale</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>TBQ15003</td>
+                    <td>Tubolare 150x150 sp3</td>
+                    <td>1500</td>
+                    <td>10</td>
+                    <td>Acciaio</td>
+                </tr>
+                <tr>
+                    <td>TBQ12003</td>
+                    <td>Tubolare 120x120 sp3</td>
+                    <td>2000</td>
+                    <td>5</td>
+                    <td>Acciaio</td>
+                </tr>
+                <tr>
+                    <td>TBQ10003</td>
+                    <td>Tubolare 100x100 sp3</td>
+                    <td>1800</td>
+                    <td>8</td>
+                    <td>Acciaio</td>
+                </tr>
+                <tr>
+                    <td>TBQ08004</td>
+                    <td>Tubolare 80x80 sp4</td>
+                    <td>2500</td>
+                    <td>3</td>
+                    <td>Acciaio</td>
+                </tr>
+                <tr>
+                    <td>TBQ07003</td>
+                    <td>Tubolare 70x70 sp3</td>
+                    <td>1200</td>
+                    <td>15</td>
+                    <td>Acciaio</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>📋 Descrizione Colonne</h2>
+        <ul>
+            <li><strong>Codice</strong> (obbligatorio): Codice identificativo del tubolare (es: TBQ15003, TBQ12003, TBQ10003, ecc.)</li>
+            <li><strong>Descrizione</strong> (opzionale): Descrizione del tubolare</li>
+            <li><strong>Lunghezza</strong> (obbligatorio): Lunghezza del pezzo in millimetri (es: 1500)</li>
+            <li><strong>Quantità</strong> (obbligatorio): Numero di pezzi necessari (es: 10)</li>
+            <li><strong>Materiale</strong> (opzionale): Tipo di materiale (es: Acciaio, Alluminio)</li>
+        </ul>
+
+        <h2>⚠️ Note Importanti</h2>
+        <div class="note">
+            <ul>
+                <li>La prima riga DEVE contenere le intestazioni delle colonne</li>
+                <li>Le colonne "Lunghezza" e "Quantità" devono contenere solo numeri</li>
+                <li>La lunghezza deve essere espressa in millimetri (mm)</li>
+                <li>Le colonne "Descrizione" e "Materiale" sono opzionali</li>
+                <li>Il file deve essere in formato .xlsx o .xls</li>
+                <li>Evita celle vuote nelle colonne obbligatorie</li>
+            </ul>
+        </div>
+
+        <h2>💾 Scarica Template</h2>
+        <p>Per facilitare l'inserimento dei dati, puoi creare un file Excel seguendo esattamente la struttura della tabella sopra.</p>
+        
+        <button class="btn-download" onclick="createExcelTemplate()">
+            ⬇️ Genera Template Excel
+        </button>
+
+        <div class="info-box" style="margin-top: 30px;">
+            <strong>💡 Suggerimento:</strong> Una volta scaricato il template, aprilo con Microsoft Excel, Google Sheets o LibreOffice Calc, 
+            compila i dati e salvalo. Poi importalo nell'applicazione web.
+        </div>
+    </div>
+
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script>
+        function createExcelTemplate() {
+            // Create sample data
+            const data = [
+                ['Codice', 'Descrizione', 'Lunghezza', 'Quantità', 'Materiale'],
+                ['TBQ15003', 'Tubolare 150x150 sp3', 1500, 10, 'Acciaio'],
+                ['TBQ12003', 'Tubolare 120x120 sp3', 2000, 5, 'Acciaio'],
+                ['TBQ10003', 'Tubolare 100x100 sp3', 1800, 8, 'Acciaio'],
+                ['TBQ08004', 'Tubolare 80x80 sp4', 2500, 3, 'Acciaio'],
+                ['TBQ07003', 'Tubolare 70x70 sp3', 1200, 15, 'Acciaio'],
+                ['', '', '', '', ''],
+                ['// Aggiungi qui le tue righe seguendo il formato sopra', '', '', '', '']
+            ];
+
+            // Create workbook and worksheet
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            
+            // Set column widths
+            ws['!cols'] = [
+                { wch: 10 },  // Codice
+                { wch: 30 },  // Descrizione
+                { wch: 12 },  // Lunghezza
+                { wch: 10 },  // Quantità
+                { wch: 15 }   // Materiale
+            ];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Tubolari');
+
+            // Save file
+            XLSX.writeFile(wb, 'Template_Tubolari.xlsx');
+
+            alert('✅ Template Excel creato e scaricato!\n\nApri il file, compila i tuoi dati e importalo nell\'applicazione web.');
+        }
+    </script>
+</body>
+</html>
