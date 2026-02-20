@@ -38,14 +38,18 @@ L'applicazione ottimizza il numero di verghe necessarie per un progetto, calcola
 4. Inserisci la quantità (es: 10)
 5. Clicca "Aggiungi Tubolare"
 
+      <!-- **Metodo 2 - Import da Excel:**
+      facoltativo---
+      1. Prepara un file Excel con le colonne:
+         - **Codice**: Codice tubolare (es: TBQ)
+         - **Lunghezza**: Lunghezza in mm (es: 1500)
+         - **Quantità**: Numero di pezzi (es: 10)
+         - **Descrizione** (opzionale)
+         - **Materiale** (opzionale)
+      2. Clicca su "Importa da Excel" e seleziona il file -->
+
 **Metodo 2 - Import da Excel:**
-1. Prepara un file Excel con le colonne:
-   - **Codice**: Codice tubolare (es: TBQ)
-   - **Lunghezza**: Lunghezza in mm (es: 1500)
-   - **Quantità**: Numero di pezzi (es: 10)
-   - **Descrizione** (opzionale)
-   - **Materiale** (opzionale)
-2. Clicca su "Importa da Excel" e seleziona il file
+1. Le intestazioni vengono prese automaticamente (R_0.1)
 
 #### 2. Configurazione
 
@@ -112,14 +116,14 @@ L'applicazione utilizza un algoritmo di **Bin Packing** per ottimizzare i tagli:
 ## 📝 Formato File Excel
 
 ### Import
-Il file Excel deve avere la prima riga con le intestazioni:
+   <!-- Il file Excel deve avere la prima riga con le intestazioni:
 
-| Codice    | Descrizione              | Lunghezza | Quantità | Materiale |
-|-----------|--------------------------|-----------|----------|-----------|
-| TBQ15003  | Tubolare 150x150 sp3     | 1500      | 10       | Acciaio   |
-| TBQ12003  | Tubolare 120x120 sp3     | 2000      | 5        | Acciaio   |
-| TBQ10003  | Tubolare 100x100 sp3     | 1800      | 8        | Acciaio   |
-
+   | Codice    | Descrizione              | Lunghezza | Quantità | Materiale |
+   |-----------|--------------------------|-----------|----------|-----------|
+   | TBQ15003  | Tubolare 150x150 sp3     | 1500      | 10       | Acciaio   |
+   | TBQ12003  | Tubolare 120x120 sp3     | 2000      | 5        | Acciaio   |
+   | TBQ10003  | Tubolare 100x100 sp3     | 1800      | 8        | Acciaio   | -->
+Le intestazioni vengono prese dall'ultima riga per comodità operativa (R_0.1)
 ### Export
 Il file esportato conterrà:
 - Informazioni silo (codice, numero, data)
