@@ -1,3 +1,4 @@
+
 // TubolarCalculator
 class TubolarCalculator {
     constructor(tubolarMap, useOptimal = true) {

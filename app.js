@@ -65,6 +65,9 @@ function setupEventListeners() {
 
     // Copy result button
     document.getElementById('copyResultBtn').addEventListener('click', copyResultToClipboard);
+
+    // Print result button
+    document.getElementById('printResultBtn').addEventListener('click', printCurrentModal);
 }
 
 function addTubolar() {
@@ -297,20 +300,56 @@ function showResults(type) {
     modal.show();
 }
 
+// function generatePurchaseList(siloCode, siloNumber) {
+//     const calculator = new TubolarCalculator(tubolarList, false);
+//     const stats = calculator.getTotalStatistics(lastCalculationResult);
+
+//     let html = `
+//         <div class="output-display">
+//         <h6>LISTA ACQUISTI</h6>
+//         <strong>Codice Silo:</strong> ${siloCode}
+//         <strong>Numero Silo:</strong> ${siloNumber}
+        
+//         <h6 class="mt-3">Verghe Necessarie:</h6>
+//     `;
+
+//     // Count rods by type and length
+//     const rodCount = {};
+//     for (const [type, rods] of Object.entries(lastCalculationResult)) {
+//         rods.forEach(rod => {
+//             const key = `${type}_${rod.rodLength}`;
+//             rodCount[key] = (rodCount[key] || 0) + 1;
+//         });
+//     }
+
+//     for (const [key, count] of Object.entries(rodCount)) {
+//         const [type, length] = key.split('_');
+//         const meters = parseInt(length) / 1000;
+//         html += `\n${type} - ${meters}m: ${count} pz`;
+//     }
+
+//     html += `\n\n<strong>Totale Verghe:</strong> ${stats.total6m} x 6m + ${stats.total12m} x 12m = ${stats.totalRods} verghe
+// <strong>Scarto Totale:</strong> ${stats.totalWaste} mm
+// <strong>Scarto Medio:</strong> ${stats.averageWaste} mm per verga
+//         </div>
+//     `;
+
+//     return html;
+// }
+
 function generatePurchaseList(siloCode, siloNumber) {
     const calculator = new TubolarCalculator(tubolarList, false);
     const stats = calculator.getTotalStatistics(lastCalculationResult);
 
     let html = `
-        <div class="output-display">
+        <div class="output-display" id="purchaseListContent">
         <h6>LISTA ACQUISTI</h6>
-        <strong>Codice Silo:</strong> ${siloCode}
-        <strong>Numero Silo:</strong> ${siloNumber}
+        <strong>Codice Silo:</strong> ${siloCode}<br>
+        <strong>Numero Silo:</strong> ${siloNumber}<br><br>
         
-        <h6 class="mt-3">Verghe Necessarie:</h6>
+        <h6>Verghe Necessarie:</h6>
     `;
 
-    // Count rods by type and length
     const rodCount = {};
     for (const [type, rods] of Object.entries(lastCalculationResult)) {
         rods.forEach(rod => {
@@ -322,60 +361,154 @@ function generatePurchaseList(siloCode, siloNumber) {
     for (const [key, count] of Object.entries(rodCount)) {
         const [type, length] = key.split('_');
         const meters = parseInt(length) / 1000;
-        html += `\n${type} - ${meters}m: ${count} pz`;
+        html += `${type} - ${meters}m: ${count} pz<br>`;
     }
 
-    html += `\n\n<strong>Totale Verghe:</strong> ${stats.total6m} x 6m + ${stats.total12m} x 12m = ${stats.totalRods} verghe
-<strong>Scarto Totale:</strong> ${stats.totalWaste} mm
-<strong>Scarto Medio:</strong> ${stats.averageWaste} mm per verga
-        </div>
-    `;
+    // html += `
+    //     <br>
+    //     <strong>Totale Verghe:</strong> ${stats.total6m} x 6m + ${stats.total12m} x 12m = ${stats.totalRods} verghe<br>
+    //     <strong>Scarto Totale:</strong> ${stats.totalWaste} mm<br>
+    //     <strong>Scarto Medio:</strong> ${stats.averageWaste} mm per verga<br><br>
+
+    //     <button onclick="printPurchaseList()" style="margin-top:20px;padding:8px 15px;">
+    //         🖨️ Stampa
+    //     </button>
+    //     </div>
+    // `;
 
     return html;
 }
 
+// function printPurchaseList() {
+//     const content = document.getElementById("purchaseListContent").innerHTML;
+
+//     const printWindow = window.open('', '', 'width=800,height=600');
+
+//     printWindow.document.write(`
+//         <html>
+//         <head>
+//             <title>Lista Acquisti</title>
+//         </head>
+//         <body style="font-family: Arial; padding: 20px;">
+//             ${content}
+//         </body>
+//         </html>
+//     `);
+
+//     printWindow.document.close();
+//     printWindow.focus();
+//     printWindow.print();
+//     printWindow.close();
+// }
+
+
 function generateCutList(siloCode, siloNumber) {
+
     let html = `
-        <div class="output-display">
+        <div class="output-display" id="cutListContent">
         <h6>LISTA DI TAGLIO DETTAGLIATA</h6>
-        <strong>Codice Silo:</strong> ${siloCode}
-        <strong>Numero Silo:</strong> ${siloNumber}
-        
+        <strong>Codice Silo:</strong> ${siloCode}<br>
+        <strong>Numero Silo:</strong> ${siloNumber}<br><br>
     `;
 
     for (const [type, rods] of Object.entries(lastCalculationResult)) {
-        html += `\n\n<h6>Tipo: ${type}</h6>\n`;
+        html += `<h6>Tipo: ${type}</h6>`;
         
         rods.forEach((rod, index) => {
             const rodLength = rod.rodLength / 1000;
-            html += `\nVerga ${index + 1} (${rodLength}m):`;
+            html += `<div>
+                <strong>Verga ${index + 1} (${rodLength}m)</strong><br>`;
             
             rod.cuts.forEach((cut, cutIndex) => {
-                html += `\n  ${cutIndex + 1}. ${cut.length} mm`;
+                html += `${cutIndex + 1}. ${cut.length} mm<br>`;
             });
             
             if (rod.waste > 0) {
-                html += `\n  Scarto: ${rod.waste} mm`;
+                html += `Scarto: ${rod.waste} mm<br>`;
             }
             
-            html += '\n';
+            html += `</div><br>`;
         });
     }
 
-    html += '</div>';
+    // html += `
+    //     <button onclick="printCutList()" style="margin-top:20px;padding:8px 15px;">
+    //         🖨️ Stampa
+    //     </button>
+    //     </div>
+    // `;
+
     return html;
 }
 
-function generateRomboFormat(siloCode, siloNumber) {
-    let html = `
-        <div class="output-display">
-        <h6>FORMATO ROMBO</h6>
-        <strong>Codice Silo:</strong> ${siloCode}
-        <strong>Numero Silo:</strong> ${siloNumber}
+// function printCutList() {
+//     const content = document.getElementById("cutListContent").innerHTML;
+    
+//     const printWindow = window.open('', '', 'width=800,height=600');
+//     printWindow.document.write(`
+//         <html>
+//             <head>
+//                 <title>Lista di Taglio</title>
+//                 <style>
+//                     body { font-family: Arial; padding: 20px; }
+//                     h6 { margin-bottom: 5px; }
+//                 </style>
+//             </head>
+//             <body>
+//                 ${content}
+//             </body>
+//         </html>
+//     `);
+    
+//     printWindow.document.close();
+//     printWindow.focus();
+//     printWindow.print();
+//     printWindow.close();
+// }
+
+
+// function generateRomboFormat(siloCode, siloNumber) {
+//     let html = `
+//         <div class="output-display">
+//         <h6>FORMATO ROMBO</h6>
+//         <strong>Codice Silo:</strong> ${siloCode}
+//         <strong>Numero Silo:</strong> ${siloNumber}
         
+//     `;
+
+//     // Group by type and length
+//     const summary = {};
+    
+//     for (const [type, tubolarArray] of Object.entries(tubolarList)) {
+//         tubolarArray.forEach(tubolar => {
+//             const key = `${type}_${tubolar.length}`;
+//             summary[key] = {
+//                 type: type,
+//                 length: tubolar.length,
+//                 quantity: tubolar.quantity
+//             };
+//         });
+//     }
+
+//     html += '\n\nCODICE | LUNGHEZZA | QTÀ\n';
+//     html += '-------|-----------|-----\n';
+    
+//     for (const [key, item] of Object.entries(summary)) {
+//         html += `${item.type} | ${item.length} mm | ${item.quantity} pz\n`;
+//     }
+
+//     html += '</div>';
+//     return html;
+// }
+function generateRomboFormat(siloCode, siloNumber) {
+
+    let html = `
+        <div class="output-display" id="romboFormatContent">
+        <h6>FORMATO ROMBO</h6>
+        <strong>Codice Silo:</strong> ${siloCode}<br>
+        <strong>Numero Silo:</strong> ${siloNumber}<br><br>
     `;
 
-    // Group by type and length
     const summary = {};
     
     for (const [type, tubolarArray] of Object.entries(tubolarList)) {
@@ -389,16 +522,46 @@ function generateRomboFormat(siloCode, siloNumber) {
         });
     }
 
-    html += '\n\nCODICE | LUNGHEZZA | QTÀ\n';
-    html += '-------|-----------|-----\n';
+    html += 'CODICE | LUNGHEZZA | QTÀ<br>';
+    html += '-------|-----------|-----<br>';
     
     for (const [key, item] of Object.entries(summary)) {
-        html += `${item.type} | ${item.length} mm | ${item.quantity} pz\n`;
+        html += `${item.type} | ${item.length} mm | ${item.quantity} pz<br>`;
     }
 
-    html += '</div>';
+    // html += `
+    //     <br>
+    //     <button onclick="printRomboFormat()" style="margin-top:20px;padding:8px 15px;">
+    //         🖨️ Stampa
+    //     </button>
+    //     </div>
+    // `;
+
     return html;
 }
+
+// function printRomboFormat() {
+//     const content = document.getElementById("romboFormatContent").innerHTML;
+
+//     const printWindow = window.open('', '', 'width=800,height=600');
+
+//     printWindow.document.write(`
+//         <html>
+//         <head>
+//             <title>Formato Rombo</title>
+//         </head>
+//         <body style="font-family: Arial; padding: 20px;">
+//             ${content}
+//         </body>
+//         </html>
+//     `);
+
+//     printWindow.document.close();
+//     printWindow.focus();
+//     printWindow.print();
+//     printWindow.close();
+// }
+
 
 // Excel parsing moved to parser.js (parseSheetRows)
 
@@ -530,3 +693,49 @@ function resetApp() {
 }
 
 // UI helpers moved to ui_helpers.js (showToast, removeTubolarDirect)
+
+//Funzione generica per stampare il contenuto del modal attivo (acquisti, taglio o rombo) in modo pulito e formattato. Utilizza una nuova finestra per la stampa, assicurando che solo il contenuto rilevante venga stampato senza elementi dell'interfaccia utente.
+function printCurrentModal() {
+    const title = document.getElementById('resultModalTitle').innerText;
+    const content = document.getElementById('resultModalBody').innerHTML;
+
+    const printWindow = window.open('', '', 'width=900,height=700');
+
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>${title}</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    padding: 30px;
+                }
+                h5, h6 {
+                    margin-bottom: 15px;
+                }
+                hr {
+                    margin: 20px 0;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                th, td {
+                    border: 1px solid #ccc;
+                    padding: 6px;
+                    text-align: left;
+                }
+            </style>
+        </head>
+        <body>
+            <h3>${title}</h3>
+            ${content}
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+}

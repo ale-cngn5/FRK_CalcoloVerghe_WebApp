@@ -1,22 +1,22 @@
-// parseSheetRows: utility to parse first sheet to items
 function parseSheetRows(sheet) {
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
 
-    // Find header row by searching for known keywords
+    if (!rows || rows.length === 0) return [];
+
+    // 🔎 Trova ultima riga non vuota (header)
     let headerIndex = -1;
-    for (let i = 0; i < rows.length; i++) {
+    for (let i = rows.length - 1; i >= 0; i--) {
         const r = rows[i];
-        if (!r) continue;
-        const found = r.some(cell => {
-            if (!cell) return false;
-            const s = String(cell).toLowerCase();
-            return s.includes('codice') || s.includes('cod.') || s.includes('cod') || s.includes('q.t') || s.includes('q.ta') || s.includes('quant');
-        });
-        if (found) { headerIndex = i; break; }
+        if (r && r.some(cell => String(cell).trim() !== '')) {
+            headerIndex = i;
+            break;
+        }
     }
-    if (headerIndex === -1) headerIndex = 0;
+
+    if (headerIndex === -1) return [];
 
     const header = rows[headerIndex].map(h => ('' + h).toLowerCase().trim());
+
     const map = {};
     header.forEach((h, idx) => {
         if (!h) return;
@@ -28,7 +28,9 @@ function parseSheetRows(sheet) {
     });
 
     const items = [];
-    for (let i = headerIndex + 1; i < rows.length; i++) {
+
+    // 📌 Tutte le righe SOPRA l'header sono dati
+    for (let i = 0; i < headerIndex; i++) {
         const r = rows[i];
         if (!r || r.every(c => c === '')) continue;
 
